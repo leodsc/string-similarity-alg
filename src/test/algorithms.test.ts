@@ -1,4 +1,4 @@
-import { jaroSimilarity, jaroWinkler } from "../src";
+import { jaroSimilarity, jaroWinkler } from "./src";
 
 describe("Algorithms", () => {
   describe("Jaro-Winkler", () => {

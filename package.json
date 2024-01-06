@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Compare strings with best suitable algorithm for your need",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
