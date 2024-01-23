@@ -32,6 +32,12 @@ declare class StringSimilarity {
 declare const _default: typeof StringSimilarity.algorithm;
 
 declare class JaroSimilarity implements SimilarityAlgorithm {
+    private maximumCharacterDistance;
+    private createMatches;
+    private matches;
+    private mapToArrayKeepOrder;
+    private transpositions;
+    private totalMatchingCharacters;
     compare: (target: string, compareTo: string) => number;
     compareMany(target: string[], compare: string[]): StringSimilarityResults;
     compareOneToMany(target: string, compare: string[]): StringSimilarityResults;
@@ -48,8 +54,10 @@ declare const jaroWinkler: JaroWinkler;
 
 /**
  * Implements Levenshtein
+ *
  * Notice that this is a **distance** algorithm, the result values will be absolute instead of relative
  * to the target as other algorithms
+ *
  * Works very well for small inputs
  */
 declare class Levenshtein implements SimilarityAlgorithm {

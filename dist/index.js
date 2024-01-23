@@ -85,76 +85,56 @@ var StringSimilarityResults = class {
 };
 
 // src/algorithms/jaro-similarity.ts
-var compareWordsLength = (s1, s2) => {
-  if (s1.length >= s2.length) {
-    return {
-      smallerWord: s2,
-      biggerWord: s1
-    };
-  }
-  return {
-    smallerWord: s1,
-    biggerWord: s2
-  };
-};
-var isWithinMaxDistance = (char, index, word, maxDistance) => {
-  const start = Math.max(index - maxDistance, 0);
-  const finish = Math.min(index + maxDistance + 1, word.length);
-  const charactersWithinDistance = word.slice(start, finish);
-  return charactersWithinDistance.includes(char);
-};
-var extractPossibleTransposition = (s, matchedCharacters) => {
-  let currentMatchedChar = 0;
-  const charPositions = {};
-  for (const char of s) {
-    if (char === matchedCharacters[currentMatchedChar]) {
-      charPositions[currentMatchedChar] = char;
-      currentMatchedChar++;
-    }
-  }
-  return charPositions;
-};
-var getTranspositions = (target, compare, matchedCharacters) => {
-  let mismatchedCharacters = 0;
-  const matchOrder = {
-    target: extractPossibleTransposition(target, matchedCharacters),
-    compare: extractPossibleTransposition(compare, matchedCharacters)
-  };
-  for (const key of Object.keys(matchOrder.target)) {
-    if (matchOrder.target[key] !== matchOrder.compare[key]) {
-      mismatchedCharacters++;
-    }
-  }
-  return Math.floor(mismatchedCharacters / 2);
-};
-var getMatchingCharacters = (target, compareTo) => {
-  let matchingChars = 0;
-  const characters = [];
-  const { smallerWord, biggerWord } = compareWordsLength(target, compareTo);
-  const maxMatchingCharacterDistance = Math.floor(Math.max(target.length, compareTo.length) / 2 - 1);
-  for (const [index, char] of Object.entries(biggerWord)) {
-    if (isWithinMaxDistance(char, Number(index), smallerWord, maxMatchingCharacterDistance)) {
-      matchingChars++;
-      characters.push(char);
-    }
-  }
-  return {
-    matches: matchingChars,
-    possibleTransposition: characters
-  };
-};
 var JaroSimilarity = class {
-  compare = (target, compareTo) => {
-    const characters = getMatchingCharacters(target, compareTo);
-    if (characters.matches === 0) {
-      return 0;
+  maximumCharacterDistance = (target, compare) => Math.floor(Math.max(target.length, compare.length) / 2) - 1;
+  createMatches = () => {
+    return {
+      target: /* @__PURE__ */ new Map(),
+      compare: /* @__PURE__ */ new Map()
+    };
+  };
+  matches = this.createMatches();
+  mapToArrayKeepOrder = (map) => {
+    const array = Array(map.size);
+    for (const [key, value] of map.entries()) {
+      array[key] = value;
     }
-    const targetMatchingCharsProportion = characters.matches / target.length;
-    const compareToMatchingCharsProportion = characters.matches / compareTo.length;
-    const transpositions = getTranspositions(target, compareTo, characters.possibleTransposition);
-    const transpositionsProportion = (characters.matches - transpositions) / characters.matches;
-    const formulae = targetMatchingCharsProportion + compareToMatchingCharsProportion + transpositionsProportion;
-    return 1 / 3 * formulae;
+    return array.filter((v) => v);
+  };
+  transpositions = () => {
+    let transpositions = 0;
+    const matchesCompare = this.mapToArrayKeepOrder(this.matches.compare);
+    const matchesTarget = this.mapToArrayKeepOrder(this.matches.target);
+    for (const [key, value] of matchesCompare.entries()) {
+      if (value !== matchesTarget[key]) {
+        transpositions++;
+      }
+    }
+    return transpositions / 2;
+  };
+  totalMatchingCharacters = (target, compare) => {
+    let totalMatching = 0;
+    const maximumCharacterDistance = this.maximumCharacterDistance(target, compare);
+    for (let i = 0; i < target.length; i++) {
+      const start = Math.max(i - maximumCharacterDistance, 0);
+      const end = Math.min(i + maximumCharacterDistance + 1, compare.length);
+      for (let j = start; j <= end; j++) {
+        if (compare[j] === target[i] && !this.matches.compare.has(j) && !this.matches.target.has(i)) {
+          totalMatching++;
+          this.matches.target.set(i, target[i]);
+          this.matches.compare.set(j, compare[j]);
+        }
+      }
+    }
+    return totalMatching;
+  };
+  compare = (target, compareTo) => {
+    this.matches = this.createMatches();
+    const totalMatching = this.totalMatchingCharacters(target, compareTo);
+    const matchingTargetProportion = totalMatching / target.length;
+    const matchingCompareProportion = totalMatching / compareTo.length;
+    const transitionProportion = (totalMatching - this.transpositions()) / totalMatching;
+    return 1 / 3 * (matchingTargetProportion + matchingCompareProportion + transitionProportion);
   };
   compareMany(target, compare) {
     const ssr = new StringSimilarityResults();

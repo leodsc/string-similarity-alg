@@ -7,9 +7,9 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "publish:p": "npm version patch && npm publish",
-    "publish:mi": "npm version minor && npm publish"
+    "build": "pnpm test && tsup src/index.ts --format cjs,esm --dts",
+    "publish:p": "pnpm build && npm version patch && npm publish",
+    "publish:mi": "pnpm build && npm version minor && npm publish"
   },
   "keywords": [
     "string",
