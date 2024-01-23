@@ -21,7 +21,6 @@ describe("Algorithms", () => {
   describe("Jaro similarity", () => {
     it("martha and marhta should be 94% similar", () => {
       const result = jaroSimilarity.compare("MARTHA", "MARHTA");
-      console.log(result);
       expect(result).toBeCloseTo(0.944);
     });
 
