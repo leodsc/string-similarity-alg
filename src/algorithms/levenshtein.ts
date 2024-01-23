@@ -3,8 +3,10 @@ import { StringSimilarityResults } from "../string-similarity-result";
 
 /**
  * Implements Levenshtein
+ * 
  * Notice that this is a **distance** algorithm, the result values will be absolute instead of relative
  * to the target as other algorithms
+ * 
  * Works very well for small inputs
  */
 
