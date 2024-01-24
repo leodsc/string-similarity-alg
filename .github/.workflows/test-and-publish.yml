@@ -1,0 +1,34 @@
+name: 'Test and publish package'
+
+on: 
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'Release patch, minor or major'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - name: Patch release
+        if: startsWith(github.event.inputs.release-type, 'patch') == true
+        run: |
+          npm i pnpm -g
+          pnpm publish:patch
+      - name: Minor release
+        if: startsWith(github.event.inputs.release-type, 'minor') == true
+        run: |
+          npm i pnpm -g
+          pnpm publish:minor
+      - name: Major release
+        if: startsWith(github.event.inputs.release-type, 'major') == true
+        run: |
+          npm i pnpm -g
+          pnpm publish:major
